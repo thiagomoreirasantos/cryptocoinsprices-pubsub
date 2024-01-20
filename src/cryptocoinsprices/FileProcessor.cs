@@ -3,7 +3,7 @@ namespace cryptcoinsprices
 {
     public class FileProcessor
     {
-        public const string DIRECTORY_PATH = "";
+        public const string DIRECTORY_PATH = "/home/thiago/repo/crypto-coins-prices/src/cryptcoinsprices/archive";
         public static async Task<List<string>> ProcessAsync()
         {
             List<string> fileCollection = new List<string>();
@@ -16,7 +16,7 @@ namespace cryptcoinsprices
             var filesArrays = await Task.WhenAll(fileTasks);
 
             fileCollection.AddRange(filesArrays);
-
+            
             return fileCollection;                  
         }
 

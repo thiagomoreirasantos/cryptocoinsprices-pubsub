@@ -4,16 +4,21 @@ namespace cryptocoinsprices
 {
     public class Producer
     {
-        public async Task<List<string>> ProduceAsync(List<string> fileEntries)
+        private ChannelWriter<string> _writer;
+        public Producer(ChannelWriter<string> writer)
         {
-            var channel = Channel.CreateBounded<string>(
-                new BoundedChannelOptions(1_000)
-                {
-                    SingleWriter = true,
-                    SingleReader = false,
-                    AllowSynchronousContinuations = false,
-                    FullMode = BoundedChannelFullMode.DropWrite
-                });       
+            _writer = writer;
+        }
+        public async Task ProduceAsync(List<string> fileEntries)
+        {
+            foreach (var fileEntry in fileEntries)
+            {
+                while (await _writer.WaitToWriteAsync().ConfigureAwait(false))
+                if (_writer.TryWrite(fileEntry))
+                    break;               
+            }
+
+            Console.WriteLine("Producer completed");            
         }
     }
 }
