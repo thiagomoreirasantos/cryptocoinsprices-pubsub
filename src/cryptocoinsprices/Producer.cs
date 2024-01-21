@@ -12,8 +12,7 @@ namespace cryptocoinsprices
 
         public void Dispose()
         {
-            this.Dispose();
-            GC.SuppressFinalize(this);
+            this.Dispose();            
         }
 
         public async Task ProduceAsync(string fileEntry)

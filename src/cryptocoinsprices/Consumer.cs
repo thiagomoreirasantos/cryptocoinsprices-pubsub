@@ -38,8 +38,7 @@ namespace cryptocoinsprices
 
         public void Dispose()
         {
-            this.Dispose();
-            GC.SuppressFinalize(this);
+            this.Dispose();            
         }
     }
 }
