@@ -2,9 +2,10 @@ using System.Threading.Channels;
 
 namespace cryptocoinsprices
 {
-    public class Consumer
+    public class Consumer : IDisposable
     {
         ChannelReader<string> _reader;
+
         public Consumer(ChannelReader<string> reader)
         {
             _reader = reader;
@@ -12,15 +13,33 @@ namespace cryptocoinsprices
 
         public async Task ConsumeAsync()
         {
-            while (await _reader.WaitToReadAsync())
+            try
             {
-                while (_reader.TryRead(out var fileEntry))
-                {
-                    System.Console.WriteLine(fileEntry);
-                }
-            }
+                Console.WriteLine("Consumer started");
 
-            Console.WriteLine("Consumer completed");
+                var cts = new CancellationTokenSource();
+
+                while (await _reader.WaitToReadAsync())
+                {
+                    var fileEntries = _reader.ReadAllAsync(cts.Token);
+                    await foreach (var fileEntry in fileEntries)
+                    {
+                        Console.WriteLine($"Consumer: {fileEntry}");
+                    }
+                }
+                Console.WriteLine("Consumer completed");
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error consuming files.{ex.ToString()}");
+            }
+        }
+
+        public void Dispose()
+        {
+            this.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

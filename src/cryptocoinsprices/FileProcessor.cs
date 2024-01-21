@@ -1,28 +1,27 @@
 
 namespace cryptcoinsprices
 {
-    public class FileProcessor
+    public class FileProcessor : IDisposable
     {
-        public const string DIRECTORY_PATH = "/home/thiago/repo/crypto-coins-prices/src/cryptcoinsprices/archive";
-        public static async Task<List<string>> ProcessAsync()
+        public static Task<string> ProcessAsync(string file)
         {
-            List<string> fileCollection = new List<string>();
+            try
+            {
+                Console.WriteLine($"Processing {file}");
+                var content = File.ReadAllTextAsync(file);
+                return content;
 
-            string[] directories = Directory.GetDirectories(DIRECTORY_PATH);
-
-            var fileTasks = directories.SelectMany(directory => Directory.GetFiles(directory))
-                                    .Select(filePath => ReadFileAsync(filePath));
-
-            var filesArrays = await Task.WhenAll(fileTasks);
-
-            fileCollection.AddRange(filesArrays);
-            
-            return fileCollection;                  
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error processing files.{ex.ToString()}");
+            }
         }
 
-        private static async Task<string> ReadFileAsync(string filePath)
+        public void Dispose()
         {
-            return await File.ReadAllTextAsync(filePath);
+            this.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

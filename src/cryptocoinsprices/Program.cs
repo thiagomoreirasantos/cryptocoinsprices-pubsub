@@ -3,16 +3,32 @@ using System.Threading.Channels;
 using cryptcoinsprices;
 using cryptocoinsprices;
 
-const int CHANNEL_CAPACITY = 1000;
+const string DIRECTORY_PATH = "/cryptocoinsprices/archive/D1";
 
-Channel<string> channel = Channel.CreateBounded<string>(CHANNEL_CAPACITY);
+if (!Directory.Exists(DIRECTORY_PATH))
+{
+    throw new DirectoryNotFoundException($"Directory {DIRECTORY_PATH} not found.");
+}
 
-var files = await FileProcessor.ProcessAsync();
+string[] files = Directory.GetFiles(DIRECTORY_PATH);
 
-Producer producer = new Producer(channel.Writer);
-Consumer consumer = new Consumer(channel.Reader);
+files = files.Where(file => file.EndsWith(".csv")).ToArray();
 
-await producer.ProduceAsync(files);
-await consumer.ConsumeAsync();
+foreach (var file in files)
+{
+    Console.WriteLine($"Processing {file}");
 
-Console.ReadLine();
+    Channel<string> channel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions());
+    
+    var content = await FileProcessor.ProcessAsync(file ?? "");
+
+    Producer producer = new Producer(channel.Writer);
+    Consumer consumer = new Consumer(channel.Reader);
+
+    await producer.ProduceAsync(content);
+    await consumer.ConsumeAsync();
+
+    channel.Writer.TryComplete();
+}
+
+Console.WriteLine("Finish.");
